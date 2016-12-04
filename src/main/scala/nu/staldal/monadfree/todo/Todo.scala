@@ -4,7 +4,6 @@ import nu.staldal.monadfree.{Evaluator, MonadFree}
 
 import scala.collection.immutable
 
-
 sealed trait TodoOp
 case class NewTask(task: String) extends TodoOp
 case class CompleteTask(task: String) extends TodoOp
@@ -16,8 +15,8 @@ class Todo(val accumulator: immutable.Seq[TodoOp] = Vector.empty) extends MonadF
   def getTasks: Todo = new Todo(accumulator :+ GetTasks)
 }
 
-class PrintEvaluator extends Evaluator[TodoOp, Unit] {
-  override def apply(a: TodoOp): Unit = {
+class PrintEvaluator extends Evaluator[TodoOp, Unit, Unit] {
+  override def apply(a: TodoOp, prev: Unit): Unit = {
     a match {
       case NewTask(task) =>
         println(s"New task added: $task")
@@ -44,7 +43,7 @@ object Example extends App {
 
   println("Run")
 
-  todos.run(new PrintEvaluator)
+  todos.run((), new PrintEvaluator)
 
   println("End")
 }

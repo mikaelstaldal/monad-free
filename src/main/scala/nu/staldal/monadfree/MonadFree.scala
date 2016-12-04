@@ -6,8 +6,12 @@ import scala.collection.immutable
 abstract class MonadFree[E] {
   val accumulator: immutable.Seq[E]
 
-  def run[R](evaluator: Evaluator[E, R]): R = {
-    accumulator.foreach(evaluator.apply)
+  def run[I, R](initial: I, evaluator: Evaluator[E, I, R]): R = {
+    val iter = accumulator.iterator
+    var i = initial
+    while (iter.hasNext) {
+      i = evaluator.apply(iter.next(), i)
+    }
     evaluator.result
   }
 }

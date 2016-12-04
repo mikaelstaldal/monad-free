@@ -8,32 +8,28 @@ import scala.collection.{immutable, mutable}
 sealed trait DbOp
 case class GetOp(key: String) extends DbOp
 case class PutOp(key: String, value: String) extends DbOp
-case object ListOp extends DbOp
 
 class Db(val accumulator: immutable.Seq[DbOp] = Vector.empty) extends MonadFree[DbOp] {
   def get(key: String): Db = new Db(accumulator :+ GetOp(key))
   def put(key: String, value: String): Db = new Db(accumulator :+ PutOp(key, value))
-  def list(): Db = new Db(accumulator :+ ListOp)
 }
 
-class PrintEvaluator extends Evaluator[DbOp, Unit] {
-  override def apply(a: DbOp): Unit = println(a)
+class PrintEvaluator extends Evaluator[DbOp, Unit, Unit] {
+  override def apply(a: DbOp, prev: Unit): Unit = println(a)
 
   override def result: Unit = ()
 }
 
-class MemoryEvaluator extends Evaluator[DbOp, Map[String, String]] {
+class MemoryEvaluator extends Evaluator[DbOp, Option[String], Map[String, String]] {
   val db: mutable.Map[String, String] = mutable.Map.empty
 
-  override def apply(a: DbOp): Unit = a match {
+  override def apply(a: DbOp, prev: Option[String]): Option[String] = a match {
     case GetOp(key) =>
       db.get(key)
 
     case PutOp(key, value) =>
-      db.put(key, value)
-
-    case ListOp =>
-      db.toSeq
+      db.put(key, prev.getOrElse(value))
+      None
   }
 
   override def result: Map[String, String] = db.toMap
@@ -45,13 +41,12 @@ object Example extends App {
   val db: Db = new Db()
     .put("A", "foo")
     .get("A")
-    .put("B", "a")
-    .list()
+    .put("B", "")
 
   println("Run print")
-  db.run(new PrintEvaluator)
+  db.run((), new PrintEvaluator)
 
-  println("Run memory: " + db.run(new MemoryEvaluator))
+  println("Run memory: " + db.run(None, new MemoryEvaluator))
 
   println("End")
 }

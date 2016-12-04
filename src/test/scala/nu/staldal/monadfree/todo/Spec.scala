@@ -6,10 +6,10 @@ import org.scalatest.{FunSpec, Matchers}
 
 class Spec extends FunSpec with Matchers {
 
-  class TestEvaluator extends Evaluator[TodoOp, Map[String, Boolean]] {
+  class TestEvaluator extends Evaluator[TodoOp, Unit, Map[String, Boolean]] {
     private var model: Map[String, Boolean] = Map.empty
 
-    override def apply(a: TodoOp): Unit = {
+    override def apply(a: TodoOp, prev: Unit): Unit = {
       a match {
         case NewTask(task) =>
           model = model + (task.toString -> false)
@@ -22,10 +22,10 @@ class Spec extends FunSpec with Matchers {
     override def result: Map[String, Boolean] = model
   }
 
-  class ActionTestEvaluator extends Evaluator[TodoOp, List[TodoOp]] {
+  class ActionTestEvaluator extends Evaluator[TodoOp, Unit, List[TodoOp]] {
     private var actions: List[TodoOp] = List.empty
 
-    override def apply(a: TodoOp): Unit = {
+    override def apply(a: TodoOp, prev: Unit): Unit = {
       a match {
         case NewTask(task) =>
           actions = actions :+ NewTask(task.toString)
@@ -48,7 +48,7 @@ class Spec extends FunSpec with Matchers {
       .getTasks
 
     it("should evaluate todos") {
-      val result = todos.run(new TestEvaluator)
+      val result = todos.run((), new TestEvaluator)
 
       val expected: Map[String, Boolean] =
         Map(
@@ -62,7 +62,7 @@ class Spec extends FunSpec with Matchers {
 
     it("should evaluate todos with an action evaluator") {
       val actionTestEvaluator = new ActionTestEvaluator
-      todos.run(actionTestEvaluator)
+      todos.run((), actionTestEvaluator)
 
       val expected: List[TodoOp] =
         List(

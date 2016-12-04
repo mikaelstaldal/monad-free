@@ -2,7 +2,7 @@ package nu.staldal.monadfree.db
 
 import nu.staldal.monadfree.{Evaluator, MonadFree}
 
-import scala.collection.immutable
+import scala.collection.{immutable, mutable}
 
 
 sealed trait DbOp
@@ -22,6 +22,22 @@ class PrintEvaluator extends Evaluator[DbOp, Unit] {
   override def result: Unit = ()
 }
 
+class MemoryEvaluator extends Evaluator[DbOp, Map[String, String]] {
+  val db: mutable.Map[String, String] = mutable.Map.empty
+
+  override def apply(a: DbOp): Unit = a match {
+    case GetOp(key) =>
+      db.get(key)
+
+    case PutOp(key, value) =>
+      db.put(key, value)
+
+    case ListOp =>
+      db.toSeq
+  }
+
+  override def result: Map[String, String] = db.toMap
+}
 
 object Example extends App {
   println("Start")
@@ -32,9 +48,10 @@ object Example extends App {
     .put("B", "a")
     .list()
 
-  println("Run")
-
+  println("Run print")
   db.run(new PrintEvaluator)
+
+  println("Run memory: " + db.run(new MemoryEvaluator))
 
   println("End")
 }

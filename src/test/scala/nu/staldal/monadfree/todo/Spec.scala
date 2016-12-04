@@ -1,5 +1,6 @@
-package nu.staldal.monadfree
+package nu.staldal.monadfree.todo
 
+import nu.staldal.monadfree.Evaluator
 import org.scalatest.{FunSpec, Matchers}
 
 

@@ -14,21 +14,6 @@ class Todo(val accumulator: immutable.Seq[TodoOp] = Vector.empty) extends MonadF
   def getTasks: Todo = new Todo(accumulator :+ GetTasks)
 }
 
-class ProductionEvaluator extends Evaluator[TodoOp, Unit] {
-  override def apply(a: TodoOp): Unit = {
-    a match {
-      case NewTask(_) =>
-        // database write
-      case CompleteTask(_) =>
-        // database write
-      case GetTasks =>
-        // database read
-    }
-  }
-
-  override def result: Unit = ()
-}
-
 class PrintEvaluator extends Evaluator[TodoOp, Unit] {
   override def apply(a: TodoOp): Unit = {
     a match {

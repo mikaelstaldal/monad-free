@@ -2,6 +2,7 @@ package nu.staldal.monadfree.db
 
 import nu.staldal.monadfree.{Evaluator, MonadFree}
 
+import scala.collection.immutable.Queue
 import scala.collection.{immutable, mutable}
 
 
@@ -9,7 +10,7 @@ sealed trait DbOp
 case class GetOp(key: String) extends DbOp
 case class PutOp(key: String, value: String) extends DbOp
 
-class Db(val accumulator: immutable.Seq[DbOp] = Vector.empty) extends MonadFree[DbOp] {
+class Db(val accumulator: immutable.Seq[DbOp] = Queue.empty) extends MonadFree[DbOp] {
   def get(key: String): Db = new Db(accumulator :+ GetOp(key))
   def put(key: String, value: String): Db = new Db(accumulator :+ PutOp(key, value))
 }
